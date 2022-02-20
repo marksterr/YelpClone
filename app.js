@@ -1,7 +1,8 @@
-// setup express, mongoose, and import models
+// setup express, mongoose, method-override, and import models
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const methodOverride = require('method-override');
 const Campground = require('./models/campground');
 
 // connect mongoose to mongo database
@@ -25,6 +26,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 // set express to parse request body
 app.use(express.urlencoded({ extended: true }));
+// configure express to handle all method requests
+app.use(methodOverride('_method'));
 
 // render home page
 app.get('/', (req, res) => {
@@ -40,6 +43,7 @@ app.get('/campgrounds/new', (req, res) => {
     res.render('campgrounds/new');
 });
 
+// save campground data when posted then redirect
 app.post('/campgrounds', async (req, res) => {
     const campground = new Campground(req.body.campground);
     await campground.save();
@@ -51,6 +55,21 @@ app.get('/campgrounds/:id', async (req, res) => {
     const campground = await Campground.findById(req.params.id);
     res.render('campgrounds/show', { campground });
 });
+
+// render campground edit form
+app.get('/campgrounds/:id/edit', async (req, res) => {
+    const campground = await Campground.findById(req.params.id);
+    res.render('campgrounds/edit', { campground });
+});
+
+// update with posted campground data
+app.put('/campgrounds/:id', async (req, res) => {
+    const { id } = req.params;
+    const campground = await Campground.findByIdAndUpdate(id, { ...req.body.campground });
+    res.redirect(`/campgrounds/${campground._id}`);
+});
+
+
 
 // use localhost port 3000
 app.listen(3000, () => {
