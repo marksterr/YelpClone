@@ -4,6 +4,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
 const Campground = require('./models/campground');
+const { redirect } = require('express/lib/response');
 
 // connect mongoose to mongo database
 mongoose.connect('mongodb://localhost:27017/yelp-clone', {
@@ -69,7 +70,11 @@ app.put('/campgrounds/:id', async (req, res) => {
     res.redirect(`/campgrounds/${campground._id}`);
 });
 
-
+app.delete('/campgrounds/:id', async (req, res) => {
+    const { id } = req.params;
+    await Campground.findByIdAndDelete(id);
+    res.redirect('/campgrounds');
+});
 
 // use localhost port 3000
 app.listen(3000, () => {
