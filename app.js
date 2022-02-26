@@ -1,7 +1,8 @@
-// setup express, mongoose, method-override, and import models
+// setup express, mongoose, ejs-mate, method-override, and import models
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const ejsMate = require('ejs-mate');
 const methodOverride = require('method-override');
 const Campground = require('./models/campground');
 const { redirect } = require('express/lib/response');
@@ -21,7 +22,8 @@ db.once("open", () => {
 
 const app = express(); // initialize express server
 
-// connect express to views folder
+// set express engine to ejs-mate and connect to views folder
+app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -70,6 +72,7 @@ app.put('/campgrounds/:id', async (req, res) => {
     res.redirect(`/campgrounds/${campground._id}`);
 });
 
+// delete campground from database
 app.delete('/campgrounds/:id', async (req, res) => {
     const { id } = req.params;
     await Campground.findByIdAndDelete(id);
