@@ -1,9 +1,10 @@
-// setup express, mongoose, ejs-mate, async wrapper, method-override, and import models
+// setup express, mongoose, ejs-mate, async wrapper, exrpesserror, method-override, and import models
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const ejsMate = require('ejs-mate');
 const catchAsync = require('./utils/catchAsync');
+const ExpressError = require('./utils/ExpressError');
 const methodOverride = require('method-override');
 const Campground = require('./models/campground');
 const { redirect } = require('express/lib/response');
@@ -30,6 +31,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // set express to parse request body
 app.use(express.urlencoded({ extended: true }));
+
 // configure express to handle all method requests
 app.use(methodOverride('_method'));
 
@@ -37,11 +39,13 @@ app.use(methodOverride('_method'));
 app.get('/', (req, res) => {
     res.render('home');
 });
+
 // render camground index
 app.get('/campgrounds', catchAsync(async (req, res) => {
     const campgrounds = await Campground.find({});
     res.render('campgrounds/index', {campgrounds});
 }));
+
 // render campground create page
 app.get('/campgrounds/new', (req, res) => {
     res.render('campgrounds/new');
@@ -49,6 +53,7 @@ app.get('/campgrounds/new', (req, res) => {
 
 // save campground data when posted then redirect
 app.post('/campgrounds', catchAsync(async (req, res, next) => {
+    if(!req.body.campground) throw new ExpressError('Invalid Campground Data', 400);
     const campground = new Campground(req.body.campground);
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`);
@@ -80,9 +85,15 @@ app.delete('/campgrounds/:id', catchAsync(async (req, res) => {
     res.redirect('/campgrounds');
 }));
 
+// send error for request to nonexistant page
+app.all('*', (req, res, next) => {
+    next(new ExpressError('Page Not Found', 404));
+});
+
 // basic error handler
 app.use((err, req, res, next) => {
-    res.send('Oh boy, something went wrong!');
+    const { statusCode = 500, message = 'Something went wrong' } = err;
+    res.status(statusCode).send(message);
 });
 
 // use localhost port 3000
