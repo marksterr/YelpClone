@@ -10,6 +10,7 @@ const methodOverride = require('method-override');
 const Campground = require('./models/campground');
 const { redirect } = require('express/lib/response');
 const { join } = require('path');
+const Review = require('./models/review');
 
 // connect mongoose to mongo database
 mongoose.connect('mongodb://localhost:27017/yelp-clone', {
@@ -97,6 +98,16 @@ app.delete('/campgrounds/:id', catchAsync(async (req, res) => {
     const { id } = req.params;
     await Campground.findByIdAndDelete(id);
     res.redirect('/campgrounds');
+}));
+
+// save review data to corresponding campground
+app.post('/campgrounds/:id/reviews', catchAsync(async (req, res) => {
+    const campground = await Campground.findById(req.params.id);
+    const review = new Review(req.body.review);
+    campground.reviews.push(review);
+    await review.save();
+    await campground.save();
+    res.redirect(`/campgrounds/${campground._id}`);
 }));
 
 // send error for request to nonexistant page
