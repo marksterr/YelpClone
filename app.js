@@ -36,7 +36,8 @@ app.use(express.urlencoded({ extended: true }));
 // configure express to handle all method requests
 app.use(methodOverride('_method'));
 
-
+//configure express to serve public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/campgrounds', campgrounds);
 app.use('/campgrounds/:id/reviews', reviews);
