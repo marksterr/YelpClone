@@ -4,6 +4,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const ejsMate = require('ejs-mate');
 const session = require('express-session');
+const flash = require('connect-flash');
 const ExpressError = require('./utils/ExpressError');
 const methodOverride = require('method-override');
 
@@ -40,7 +41,7 @@ app.use(methodOverride('_method'));
 //configure express to serve public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// setup express session
+// setup express session cookie
 const sessionConfig = {
     secret: 'thisshouldbeabettersecret!',
     resave: false,
@@ -52,6 +53,14 @@ const sessionConfig = {
     }
 }
 app.use(session(sessionConfig));
+app.use(flash());
+
+// middleware to send flash messages
+app.use((req, res, next) => {
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
+})
 
 // connect to routes
 app.use('/campgrounds', campgrounds);
